@@ -1,0 +1,23 @@
+{
+  "mainHall": {
+    "grid": {
+      "size": [40,20],
+      "scale": 0.5,
+      "walkable": [3,4,5,33,44,55,66]
+    },
+    "zones": [
+      {
+        "img": "mainHall1.png",
+        "pos": { "x": 0, "y": 5, "z": 5},
+        "rot": {
+          "isEuler": true,
+          "_x": 0,
+          "_y": 0,
+          "_z": 0,
+          "_order": "XYZ"
+        },
+        "transition": []
+      }
+    ]
+  }
+}
