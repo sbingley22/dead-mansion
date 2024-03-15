@@ -3,7 +3,7 @@
     "grid": {
       "size": [40,20],
       "scale": 0.5,
-      "walkable": [3,4,5,33,44,55,66]
+      "walkable": [40]
     },
     "zones": [
       {

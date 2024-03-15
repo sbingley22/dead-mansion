@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three'
+import { useControls, button } from "leva"
 
 const GridHelper = ({ grid, gridScale, setGrid, lockCam }) => {
   //console.log(grid)
@@ -13,6 +14,18 @@ const GridHelper = ({ grid, gridScale, setGrid, lockCam }) => {
   const instancedMeshRef = useRef()
 
   const [drawMode, setDrawMode] = useState(false)
+  const [brush, setBrush] = useState("walk")
+
+  useControls('Brush', {
+    brushWalk: button(() => {
+      setBrush("walk")
+      console.log("Walk mode")
+    }),
+    brushBlock: button(() => {
+      setBrush("block")
+      console.log("Block mode")
+    })
+  })
 
   useEffect(() => {
     if (!grid) return
@@ -66,6 +79,8 @@ const GridHelper = ({ grid, gridScale, setGrid, lockCam }) => {
 
   const handleMouseDown = () => {
     setDrawMode(true);
+    //console.log(drawMode)
+    //console.log(grid)
   };
 
   const handleMouseUp = () => {

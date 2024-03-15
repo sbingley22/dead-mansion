@@ -2,15 +2,16 @@
 import { useControls, button } from "leva"
 import { useState } from "react"
 import { Canvas } from "@react-three/fiber"
-import levels from '../assets/levels.json'
+import levelsJson from '../assets/levels.json'
 import LevelEditor from "./LevelEditor"
 
 const LevelSelector = () => {
-  //console.log(levels)
+  const [levels, setLevels] = useState(levelsJson)
   const [level, setLevel] = useState(null)
   const [zone, setZone] = useState(0)
+  //console.log(levels)
 
-  useControls('Zone', {
+  useControls('Level', {
     nextZone: button(() => {
       if (level) {
         const zones = levels[level].zones
@@ -34,13 +35,13 @@ const LevelSelector = () => {
     )
   }
 
-  let backgroundImg = `url(${levels[level].zones[0].img})`
+  const backgroundImg = levels?.[level]?.zones?.[zone]?.img ? `url(${levels[level].zones[zone].img})` : '';  
   
   return (
     <>
       <div className="background" style={{ backgroundImage: backgroundImg}}></div>
       <Canvas>
-        <LevelEditor levels={levels} level={level} zone={zone} />
+        <LevelEditor levels={levels} setLevels={setLevels} level={level} zone={zone} />
       </Canvas>      
     </>
   )
