@@ -1,13 +1,13 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unknown-property */
-import { Box, OrbitControls } from "@react-three/drei"
+import { Box, CameraControls } from "@react-three/drei"
 import { useThree } from "@react-three/fiber"
 import { useControls, button } from "leva"
 import Pathfinding from "pathfinding"
 import { useEffect, useState } from "react"
 import GridHelper from "./GridHelper"
 
-const LevelEditor = ({ levels, setLevels, level, zone }) => {
+const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
   //console.log(levels)
   const { camera } = useThree()
   const [lockCam, setLockCam] = useState(false)
@@ -16,7 +16,7 @@ const LevelEditor = ({ levels, setLevels, level, zone }) => {
   const updateLevels = () => {
     const tempLevels = {...levels}
     const lvl = tempLevels[level]
-    console.log(lvl)
+    //console.log(lvl)
 
     if (!grid || !lvl) return
 
@@ -31,26 +31,44 @@ const LevelEditor = ({ levels, setLevels, level, zone }) => {
         const node = grid.nodes[z][x];
         const index = x + grid.width * z
         if (node.walkable) walkableArray.push(index)
-        if (node.walkable) console.log(x,z)
       }
     }
     lvl.grid.walkable = walkableArray
 
     // Camera placement
-    lvl.zones[zone].pos = camera.position
-    lvl.zones[zone].rot = camera.rotation
+    lvl.pos = camera.position
+    lvl.rot = camera.rotation
+    //lvl.quaternion = camera.quaternion
+    //lvl.matrix = camera.matrix
+    //console.log(camera)
+
+    // Doors
+    lvl.doors = doors
+
+    // Items
 
     return tempLevels
   }
 
-  const { gridX, gridY, gridScale } = useControls('Grid', {
+  const [{ gridX, gridY, gridScale }, setGridControls ] = useControls('Grid',() => ({
     gridX: { label: "x", value: 20 },
     gridY: { label: "y", value: 20 },
-    gridScale: { label: "scale", value: 0.5 },
+    gridScale: { label: "scale", value: 0.5 }
+  }))
+
+  useControls('Grid', {
     updateGrid: button(() => {
-      setGrid(new Pathfinding.Grid(gridX, gridY))
+      console.log(gridX, gridY)
+      const tempGrid = new Pathfinding.Grid(gridX, gridY)
+      for (var y = 0; y < tempGrid.height; y++) {
+        for (var x = 0; x < tempGrid.width; x++) {
+            var node = tempGrid.getNodeAt(x, y);
+            node.walkable = false;
+        }
+      }
+      setGrid(tempGrid)
     })
-  })
+  }, [gridX, gridY])
 
   useControls('Camera', {
     lockCamera: button(() => {
@@ -60,6 +78,13 @@ const LevelEditor = ({ levels, setLevels, level, zone }) => {
     })
   }, [lockCam])
 
+  const { boxPos } = useControls('Box', {
+    boxPos: {
+      label: "position",
+      value: [0,0.8,0]
+    }
+  })
+
   useControls('Level', {
     updateLevel: button(() => {
       const tempLevels = updateLevels()
@@ -68,9 +93,20 @@ const LevelEditor = ({ levels, setLevels, level, zone }) => {
     }),
     saveLevel: button(() => {
       const tempLevels = updateLevels()
-      console.log(tempLevels)
+
+      // Download json to downloads folder
+      const fileName = "levels.json"
+      const jsonBlob = new Blob([JSON.stringify(tempLevels, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(jsonBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);      
     })
-  }, [grid, gridScale, zone])
+  }, [grid, gridScale])
 
   // Load selected level
   useEffect(() => {
@@ -81,8 +117,11 @@ const LevelEditor = ({ levels, setLevels, level, zone }) => {
     //console.log(levels, level)
     
     // Create new grid
-    const tempGrid = new Pathfinding.Grid(lvl.grid.size[0],lvl.grid.size[1])
-    console.log(tempGrid)
+    const gridWidth = lvl.grid.size[0]
+    const gridHeight = lvl.grid.size[1]
+    setGridControls({ gridX: gridWidth, gridY: gridHeight })
+    const tempGrid = new Pathfinding.Grid(gridWidth, gridHeight)
+    //console.log(tempGrid)
 
     // Initialize walkable to false
     for (let x = 0; x < tempGrid.width; x++) {
@@ -100,37 +139,31 @@ const LevelEditor = ({ levels, setLevels, level, zone }) => {
     //console.log(lvl.grid.walkable)
 
     // Load in scale
-    //gridScale = lvl.grid.scale
-
+    setGridControls({ gridScale: lvl.grid.scale })
+    
     setGrid(tempGrid)
 
-  }, [levels, level])
-
-  // Load zone
-  useEffect(() => {
-    if (level == null) return
-    const lvl = levels[level]
-
     if (camera) {
-      if (lvl.zones[zone].pos) {
-        const cam = lvl.zones[zone]
-        camera.position.set(cam.pos.x, cam.pos.y, cam.pos.z)
-        camera.rotation.set(cam.rot.x, cam.rot.y, cam.rot.z, cam.rot.order)
+      console.log(camera.matrix)
+      if (lvl.pos) {
+        camera.position.set(lvl.pos.x, lvl.pos.y, lvl.pos.z)
+        camera.rotation.set(lvl.rot._x, lvl.rot._y, lvl.rot._z, lvl.rot._order)
       }
+      console.log(camera.matrix)
     }
 
-  }, [level, levels, zone, camera])
+  }, [levels, level])
   
   return (
     <>
-      <OrbitControls enablePan={lockCam} enableRotate={lockCam} enableZoom={lockCam} />
+      {lockCam && <CameraControls enablePan={lockCam} enableRotate={lockCam} enableZoom={lockCam} />}
       <ambientLight intensity={1} />
       <directionalLight position={[0,1,0]} castShadow/>
 
-      <Box position={[0,1,0]} scale={[0.25,2,0.25]} >
+      <Box position={boxPos} scale={[0.25,1.6,0.25]} >
         <meshStandardMaterial />
       </Box>
-      { grid && <GridHelper grid={grid} gridScale={gridScale} setGrid={setGrid} lockCam={lockCam} /> }
+      { grid && <GridHelper grid={grid} gridScale={gridScale} setGrid={setGrid} lockCam={lockCam} setNodeInfo={setNodeInfo} /> }
     </>
   )
 }

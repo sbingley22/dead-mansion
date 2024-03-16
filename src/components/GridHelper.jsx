@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three'
 import { useControls, button } from "leva"
 
-const GridHelper = ({ grid, gridScale, setGrid, lockCam }) => {
+const GridHelper = ({ grid, gridScale, setGrid, lockCam, setNodeInfo }) => {
   //console.log(grid)
   const gridX = grid.width
   const gridZ = grid.height
@@ -61,7 +61,6 @@ const GridHelper = ({ grid, gridScale, setGrid, lockCam }) => {
   }, [grid])
 
   const handleMouseDraw = (e) => {
-    if (!drawMode || lockCam) return
     // console.log(e)
     const pointX = e.point.x
     const pointZ = e.point.z
@@ -71,16 +70,28 @@ const GridHelper = ({ grid, gridScale, setGrid, lockCam }) => {
     const gridZ = Math.round( (pointZ / gridScale) + grid.height/2 )
     //console.log(Math.floor(point.x), gridX)
     //console.log(gridX, gridZ)
+    setNodeInfo([gridX,gridZ])
+    
+    if (!drawMode || lockCam) return
 
     const tempGrid = {...grid}
-    tempGrid.nodes[gridZ][gridX].walkable = true
-    setGrid(tempGrid)
+    const node = tempGrid.nodes[gridZ][gridX]
+    if (brush == "walk") {
+      if (node.walkable == false) {
+        node.walkable = true
+        setGrid(tempGrid)
+      }
+    } else if (brush == "block") {
+      if (node.walkable == true) {
+        node.walkable = false
+        setGrid(tempGrid)
+      }
+    }
   }
 
   const handleMouseDown = () => {
     setDrawMode(true);
     //console.log(drawMode)
-    //console.log(grid)
   };
 
   const handleMouseUp = () => {

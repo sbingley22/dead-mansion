@@ -1,25 +1,24 @@
 /* eslint-disable react/no-unknown-property */
-import { useControls, button } from "leva"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Canvas } from "@react-three/fiber"
 import levelsJson from '../assets/levels.json'
 import LevelEditor from "./LevelEditor"
+import LevelPanel from "./LevelPanel"
 
 const LevelSelector = () => {
   const [levels, setLevels] = useState(levelsJson)
   const [level, setLevel] = useState(null)
-  const [zone, setZone] = useState(0)
   //console.log(levels)
+  const [nodeInfo, setNodeInfo] = useState(null)
+  const [doors, setDoors] = useState([])
 
-  useControls('Level', {
-    nextZone: button(() => {
-      if (level) {
-        const zones = levels[level].zones
-        if (zone + 1 < zones.length) setZone(prev => prev + 1)
-        else setZone(0)
-      }
-    })
-  });
+  useEffect(() => {
+    if (!level) return
+
+    const lvl = levels[level]
+    setDoors(lvl.doors)
+
+  }, [levels, level])
 
   if (level == null) {
     return (
@@ -35,14 +34,19 @@ const LevelSelector = () => {
     )
   }
 
-  const backgroundImg = levels?.[level]?.zones?.[zone]?.img ? `url(${levels[level].zones[zone].img})` : '';  
+  const backgroundImg = levels?.[level]?.img ? `url(${levels[level].img})` : ''
+  const nodePos = nodeInfo ? `[${nodeInfo[0]},${nodeInfo[1]}]` : ''
   
   return (
     <>
       <div className="background" style={{ backgroundImage: backgroundImg}}></div>
       <Canvas>
-        <LevelEditor levels={levels} setLevels={setLevels} level={level} zone={zone} />
-      </Canvas>      
+        <LevelEditor levels={levels} setLevels={setLevels} level={level} setNodeInfo={setNodeInfo} doors={doors} />
+      </Canvas>
+      <div className="hud-editor">
+          <p>{nodePos}</p>
+      </div>
+      <LevelPanel doors={doors} setDoors={setDoors} />
     </>
   )
 }

@@ -5,7 +5,7 @@ import LevelSelector from './components/LevelSelector'
 import Game from './components/Game'
 
 function App() {
-  const [mode, setMode] = useState(9)
+  const [mode, setMode] = useState(1)
 
   const style = {
     backgroundImage: mode == 0 ? `url(./titleShot.png)` : '',
