@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unknown-property */
 
-
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three'
 import { useControls, button } from "leva"

@@ -24,7 +24,7 @@ const Game = () => {
     )
   }  
 
-  const backgroundImg = levels?.[level]?.zones?.[zone]?.img ? `url(${levels[level].zones[zone].img})` : '';  
+  const backgroundImg = levels?.[level]?.img ? `url(${levels[level].img})` : '';  
   
   return (
     <>

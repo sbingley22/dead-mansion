@@ -81,7 +81,16 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
   const { boxPos } = useControls('Box', {
     boxPos: {
       label: "position",
-      value: [0,0.8,0]
+      value: {
+        x: 0,
+        z: 0,
+      },
+      x: {
+        step: 1,
+      },
+      z: {
+        step: 1
+      }
     }
   })
 
@@ -153,6 +162,17 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
     }
 
   }, [levels, level])
+
+  const gridToWorld = (coord, gridW, gridH, gridS) => {
+    const newX = (coord.x - (gridW / 2)) * gridS
+    const newZ = (coord.z - (gridH / 2)) * gridS
+    return({ x: newX, y: 0, z: newZ })
+  }
+
+  let boxPosWorld = boxPos
+  if (grid) {
+    boxPosWorld = gridToWorld( {x: boxPos.x, y: 0, z: boxPos.z}, grid.width, grid.height, gridScale)
+  }
   
   return (
     <>
@@ -160,7 +180,7 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
       <ambientLight intensity={1} />
       <directionalLight position={[0,1,0]} castShadow/>
 
-      <Box position={boxPos} scale={[0.25,1.6,0.25]} >
+      <Box position={[boxPosWorld.x, 0.8, boxPosWorld.z]} scale={[0.25,1.6,0.25]} >
         <meshStandardMaterial />
       </Box>
       { grid && <GridHelper grid={grid} gridScale={gridScale} setGrid={setGrid} lockCam={lockCam} setNodeInfo={setNodeInfo} /> }

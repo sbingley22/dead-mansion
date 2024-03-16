@@ -3,15 +3,16 @@
 import { useEffect, useState } from "react"
 import { useThree } from "@react-three/fiber"
 import Pathfinding from "pathfinding"
-import { Box } from "@react-three/drei"
 import Player from "./Player"
+import GridVisualiser from "./GridVisualiser"
 
-const Arena = ({ levels, setLevels, level, zone }) => {
+const Arena = ({ levels, setLevels, level }) => {
   const { camera } = useThree()
   const [grid, setGrid] = useState(null)
   const [gridScale, setGridScale] = useState(0.5)
+  const [playerPos, setPlayerPos] = useState([0,0,0])
 
-  // Load grid
+  // Load level
   useEffect(() => {
     if (levels == null) return
     if (level == null) return
@@ -23,7 +24,7 @@ const Arena = ({ levels, setLevels, level, zone }) => {
     const gridWidth = lvl.grid.size[0]
     const gridHeight = lvl.grid.size[1]
     const tempGrid = new Pathfinding.Grid(gridWidth, gridHeight)
-    console.log(tempGrid)
+    //console.log(tempGrid)
 
     // Initialize walkable to false
     for (let x = 0; x < tempGrid.width; x++) {
@@ -45,38 +46,33 @@ const Arena = ({ levels, setLevels, level, zone }) => {
     
     setGrid(tempGrid)
 
-  }, [levels, level])
-
-  // Load zone
-  useEffect(() => {
-    if (level == null) return
-    const lvl = levels[level]
-
+    // Load camera
     if (camera) {
-      if (lvl.zones[zone].pos) {
-        const cam = lvl.zones[zone]
-        camera.position.set(cam.pos.x, cam.pos.y, cam.pos.z)
-        camera.rotation.set(cam.rot._x, cam.rot._y, cam.rot._z, cam.rot._order)
+      if (lvl.pos) {
+        camera.position.set(lvl.pos.x, lvl.pos.y, lvl.pos.z)
+        camera.rotation.set(lvl.rot._x, lvl.rot._y, lvl.rot._z, lvl.rot._order)
       }
     }
-    console.log(camera)
 
-  }, [level, levels, zone, camera])
+    // Load player
+    const door = lvl.doors[0]
+    const doorPos = gridToWorld({x: parseInt(door.x), y: 0, z: parseInt(door.z)}, tempGrid.width, tempGrid.height, gridScale)
+    setPlayerPos([doorPos.x, 0, doorPos.z])
+    //setPlayerPos([0,0,0])
+    console.log(door, doorPos)
+
+  }, [levels, level])
   
 
   // Grid conversion
-  const gridToWorld = (coord) => {
-    const offsetX = (grid.width*gridScale) * -0.5
-    const offsetZ = (grid.height*gridScale) * -0.5
-    const newX = coord.x + offsetX
-    const newZ = coord.z + offsetZ
+  const gridToWorld = (coord, gridW, gridH, gridS) => {
+    const newX = (coord.x - (gridW / 2)) * gridS
+    const newZ = (coord.z - (gridH / 2)) * gridS
     return({ x: newX, y: 0, z: newZ })
   }
-  const worldToGrid = (coord) => {
-    const offsetX = (grid.width*gridScale) * 0.5
-    const offsetZ = (grid.height*gridScale) * 0.5
-    const newX = coord.x + offsetX
-    const newZ = coord.z + offsetZ
+  const worldToGrid = (coord, gridW, gridH, gridS) => {
+    const newX = (coord.x * gridS) + (gridW / 2)
+    const newZ = (coord.z * gridS) + (gridH / 2)
     return({ x: newX, y: 0, z: newZ })
   }
 
@@ -84,11 +80,8 @@ const Arena = ({ levels, setLevels, level, zone }) => {
     <>
       <ambientLight intensity={1} />
       <directionalLight position={[0,1,0]} castShadow/>
-
-      <Box position={[0,1,0]} scale={[0.25,1.4,0.25]} >
-        <meshStandardMaterial />
-      </Box>
-      <Player />
+      <Player playerPos={playerPos} gridToWorld={gridToWorld} worldToGrid={worldToGrid} />
+      <GridVisualiser grid={grid} gridScale={gridScale} />
     </>
   )
 }
