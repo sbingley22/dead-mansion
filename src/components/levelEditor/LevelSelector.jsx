@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Canvas } from "@react-three/fiber"
-import levelsJson from '../assets/levels.json'
+import levelsJson from '../../assets/levels.json'
 import LevelEditor from "./LevelEditor"
 import LevelPanel from "./LevelPanel"
 
@@ -10,7 +10,9 @@ const LevelSelector = () => {
   const [level, setLevel] = useState(null)
   //console.log(levels)
   const [nodeInfo, setNodeInfo] = useState(null)
+  const [screenInfo, setScreenInfo] = useState(null)
   const [doors, setDoors] = useState([])
+  const backgroundRef = useRef()
 
   useEffect(() => {
     if (!level) return
@@ -20,6 +22,23 @@ const LevelSelector = () => {
     if (lvl.doors) setDoors(lvl.doors)
 
   }, [levels, level])
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const backgroundDiv = backgroundRef.current;
+      if (!backgroundDiv) return
+  
+      const rect = backgroundDiv.getBoundingClientRect();
+      const x = Math.round(e.clientX - rect.left)
+      const y = Math.round(e.clientY - rect.top)
+      setScreenInfo(`x: ${x}, y: ${y}`);
+    }
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
 
   if (level == null) {
     return (
@@ -34,18 +53,24 @@ const LevelSelector = () => {
       </div>
     )
   }
+  
 
   const backgroundImg = levels?.[level]?.img ? `url(${levels[level].img})` : ''
   const nodePos = nodeInfo ? `[${nodeInfo[0]},${nodeInfo[1]}]` : ''
   
   return (
     <>
-      <div className="background" style={{ backgroundImage: backgroundImg}}></div>
+      <div
+        className="background"
+        style={{ backgroundImage: backgroundImg}}
+        ref={backgroundRef}
+      />
       <Canvas>
-        <LevelEditor levels={levels} setLevels={setLevels} level={level} setNodeInfo={setNodeInfo} doors={doors} />
+        <LevelEditor levels={levels} setLevels={setLevels} level={level} setNodeInfo={setNodeInfo} setScreenInfo={setScreenInfo} doors={doors} />
       </Canvas>
       <div className="hud-editor">
-          <p>{nodePos}</p>
+        <p>{screenInfo}</p>
+        <p>{nodePos}</p>
       </div>
       <LevelPanel doors={doors} setDoors={setDoors} />
     </>

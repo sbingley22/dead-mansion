@@ -172,6 +172,7 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
       console.log(camera.matrix)
     }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levels, level])
 
   const gridToWorld = (coord, gridW, gridH, gridS) => {

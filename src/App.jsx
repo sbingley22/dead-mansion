@@ -1,7 +1,7 @@
 import './App.css'
 import MainMenu from './components/MainMenu'
 import { useState } from 'react'
-import LevelSelector from './components/LevelSelector'
+import LevelSelector from './components/levelEditor/LevelSelector'
 import Game from './components/Game'
 
 function App() {

@@ -70,8 +70,8 @@ button {
 }
 
 .content input {
-  display: block;
-  width: auto;
+  display: inline;
+  width: fit-content;
 }
 
 .content button {

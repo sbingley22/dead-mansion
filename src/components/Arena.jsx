@@ -4,17 +4,16 @@ import { useEffect, useState } from "react"
 import { useThree } from "@react-three/fiber"
 import Pathfinding from "pathfinding"
 import Player from "./Player"
+// eslint-disable-next-line no-unused-vars
 import GridVisualiser from "./GridVisualiser"
-import { Plane } from "@react-three/drei"
 import GridGame from "./GridGame"
 
-const Arena = ({ levels, setLevels, level }) => {
+const Arena = ({ levels, setLevels, level, playerDestination, setPlayerDestination }) => {
   const { camera } = useThree()
   const [grid, setGrid] = useState(null)
   const [gridScale, setGridScale] = useState(0.5)
   const [playerPos, setPlayerPos] = useState([0,0,0])
   const [gridClick, setGridClick] = useState([-1,-1])
-  const [playerDestination, setPlayerDestination] = useState([-1,-1])
 
   // Load level
   useEffect(() => {
@@ -65,6 +64,7 @@ const Arena = ({ levels, setLevels, level }) => {
     //setPlayerPos([0,0,0])
     //console.log(door, doorPos)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levels, level])
   
   // Pathfinding

@@ -26,3 +26,4 @@ dist-ssr
 public/alt/*
 public/dev/*
 src/assets/alt/*
+src/assets/dev/*

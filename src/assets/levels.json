@@ -123,7 +123,20 @@
             {
                 "x": 15,
                 "z": 0,
-                "destination": "mainHall2"
+                "destination": "study",
+                "sx1": 100,
+                "sy1": 400,
+                "sx2": 1100,
+                "sy2": 500
+            },
+            {
+                "x": 16,
+                "z": 9,
+                "destination": "mainHall2",
+                "sx1": 0,
+                "sy1": 500,
+                "sx2": 200,
+                "sy2": 800
             }
         ]
     },
@@ -177,7 +190,11 @@
             {
                 "x": 0,
                 "z": 0,
-                "destination": "mainHall"
+                "destination": "mainHall",
+                "sx1": "600",
+                "sy1": "400",
+                "sx2": "1100",
+                "sy2": "600"
             }
         ]
     }
