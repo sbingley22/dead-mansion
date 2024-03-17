@@ -16,7 +16,8 @@ const LevelSelector = () => {
     if (!level) return
 
     const lvl = levels[level]
-    setDoors(lvl.doors)
+
+    if (lvl.doors) setDoors(lvl.doors)
 
   }, [levels, level])
 

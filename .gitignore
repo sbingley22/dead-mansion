@@ -23,6 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-public/alt
-public/dev
-src/assets/alt
+public/alt/*
+public/dev/*
+src/assets/alt/*

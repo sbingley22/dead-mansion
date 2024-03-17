@@ -20,6 +20,10 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
 
     if (!grid || !lvl) return
 
+    if (!lvl.grid) {
+      lvl.grid = {}
+    }
+
     // Grid size
     lvl.grid.size = [grid.width, grid.height]
     lvl.grid.scale = gridScale
@@ -51,8 +55,8 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
   }
 
   const [{ gridX, gridY, gridScale }, setGridControls ] = useControls('Grid',() => ({
-    gridX: { label: "x", value: 20 },
-    gridY: { label: "y", value: 20 },
+    gridX: { label: "x", value: 20, step: 1, min: 0 },
+    gridY: { label: "y", value: 20, step: 1, min: 0 },
     gridScale: { label: "scale", value: 0.5 }
   }))
 
@@ -130,8 +134,8 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
     //console.log(levels, level)
     
     // Create new grid
-    const gridWidth = lvl.grid.size[0]
-    const gridHeight = lvl.grid.size[1]
+    const gridWidth = lvl.grid?.size?.[0] ?? 15
+    const gridHeight = lvl.grid?.size?.[1] ?? 15
     setGridControls({ gridX: gridWidth, gridY: gridHeight })
     const tempGrid = new Pathfinding.Grid(gridWidth, gridHeight)
     //console.log(tempGrid)
@@ -144,15 +148,18 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
     }
 
     // Load in walkable values from json
-    lvl.grid.walkable.forEach((nodeIndex) => {
-      const x = nodeIndex % tempGrid.width
-      const z = Math.floor(nodeIndex / tempGrid.width)
-      tempGrid.nodes[z][x].walkable = true
-    })
+    if (lvl.grid && lvl.grid.walkable) {
+      lvl.grid.walkable.forEach((nodeIndex) => {
+        const x = nodeIndex % tempGrid.width
+        const z = Math.floor(nodeIndex / tempGrid.width)
+        tempGrid.nodes[z][x].walkable = true
+      })
+    }
     //console.log(lvl.grid.walkable)
 
     // Load in scale
-    setGridControls({ gridScale: lvl.grid.scale })
+    const gScale = lvl.grid?.scale ?? 0.5
+    setGridControls({ gridScale: gScale })
     
     setGrid(tempGrid)
 

@@ -76,8 +76,15 @@ const Arena = ({ levels, setLevels, level }) => {
   const findPath = (start, end, grid) => {
     const gridClone = grid.clone()
     
+    if (start[0] < 0 || start[1] < 0) return []
+    if (start[0] > grid.width || start[1] > grid.height) return []
+    if (end[0] < 0 || end[1] < 0) return []
+    if (end[0] > grid.width || end[1] > grid.height) return []
+    //console.log(start, end)
+    
     gridClone.setWalkableAt(start[0], start[1], true)
     const path = finder.findPath(start[0], start[1], end[0], end[1], gridClone)
+    path.shift()
     return path
   }
 
@@ -88,8 +95,8 @@ const Arena = ({ levels, setLevels, level }) => {
     return({ x: newX, y: 0, z: newZ })
   }
   const worldToGrid = (coord, gridW, gridH, gridS) => {
-    const newX = (coord.x * gridS) + (gridW / 2)
-    const newZ = (coord.z * gridS) + (gridH / 2)
+    const newX = Math.floor( (coord.x / gridS) + (gridW / 2) )
+    const newZ = Math.floor( (coord.z / gridS) + (gridH / 2) )
     return({ x: newX, y: 0, z: newZ })
   }
 
@@ -103,7 +110,7 @@ const Arena = ({ levels, setLevels, level }) => {
     <>
       <ambientLight intensity={1} />
       <directionalLight position={[0,1,0]} castShadow/>
-      <Player playerPos={playerPos} playerDestination={playerDestination} grid={grid} gridToWorld={gridToWorld} worldToGrid={worldToGrid} findPath={findPath}/>
+      <Player playerPos={playerPos} playerDestination={playerDestination} grid={grid} gridScale={gridScale} gridToWorld={gridToWorld} worldToGrid={worldToGrid} findPath={findPath}/>
       <GridGame grid={grid} gridScale={gridScale} setGridClick={setGridClick} />
       {/* <GridVisualiser grid={grid} gridScale={gridScale} /> */}
     </>
