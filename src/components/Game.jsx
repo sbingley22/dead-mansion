@@ -29,7 +29,7 @@ const Game = () => {
   return (
     <>
       <div className="background" style={{ backgroundImage: backgroundImg}}></div>
-      <Canvas>
+      <Canvas shadows>
         <Suspense>
           <Arena levels={levels} setLevels={setLevels} level={level} zone={zone} />
         </Suspense>

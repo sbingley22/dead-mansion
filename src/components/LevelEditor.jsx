@@ -87,12 +87,16 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
       },
       x: {
         step: 1,
+        min: 0,
+        max: gridX
       },
       z: {
-        step: 1
+        step: 1,
+        min: 0,
+        max: gridY
       }
     }
-  })
+  }, [gridX, gridY])
 
   useControls('Level', {
     updateLevel: button(() => {

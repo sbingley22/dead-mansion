@@ -5,12 +5,16 @@ import { useThree } from "@react-three/fiber"
 import Pathfinding from "pathfinding"
 import Player from "./Player"
 import GridVisualiser from "./GridVisualiser"
+import { Plane } from "@react-three/drei"
+import GridGame from "./GridGame"
 
 const Arena = ({ levels, setLevels, level }) => {
   const { camera } = useThree()
   const [grid, setGrid] = useState(null)
   const [gridScale, setGridScale] = useState(0.5)
   const [playerPos, setPlayerPos] = useState([0,0,0])
+  const [gridClick, setGridClick] = useState([-1,-1])
+  const [playerDestination, setPlayerDestination] = useState([-1,-1])
 
   // Load level
   useEffect(() => {
@@ -59,10 +63,23 @@ const Arena = ({ levels, setLevels, level }) => {
     const doorPos = gridToWorld({x: parseInt(door.x), y: 0, z: parseInt(door.z)}, tempGrid.width, tempGrid.height, gridScale)
     setPlayerPos([doorPos.x, 0, doorPos.z])
     //setPlayerPos([0,0,0])
-    console.log(door, doorPos)
+    //console.log(door, doorPos)
 
   }, [levels, level])
   
+  // Pathfinding
+  const finder = new Pathfinding.AStarFinder({
+    allowDiagonal: true,
+    dontCrossCorners: true,
+  })
+
+  const findPath = (start, end, grid) => {
+    const gridClone = grid.clone()
+    
+    gridClone.setWalkableAt(start[0], start[1], true)
+    const path = finder.findPath(start[0], start[1], end[0], end[1], gridClone)
+    return path
+  }
 
   // Grid conversion
   const gridToWorld = (coord, gridW, gridH, gridS) => {
@@ -76,12 +93,19 @@ const Arena = ({ levels, setLevels, level }) => {
     return({ x: newX, y: 0, z: newZ })
   }
 
+  useEffect(()=>{
+    if (gridClick[0] == -1) return
+
+    setPlayerDestination(gridClick)
+  }, [gridClick])
+
   return (
     <>
       <ambientLight intensity={1} />
       <directionalLight position={[0,1,0]} castShadow/>
-      <Player playerPos={playerPos} gridToWorld={gridToWorld} worldToGrid={worldToGrid} />
-      <GridVisualiser grid={grid} gridScale={gridScale} />
+      <Player playerPos={playerPos} playerDestination={playerDestination} grid={grid} gridToWorld={gridToWorld} worldToGrid={worldToGrid} findPath={findPath}/>
+      <GridGame grid={grid} gridScale={gridScale} setGridClick={setGridClick} />
+      {/* <GridVisualiser grid={grid} gridScale={gridScale} /> */}
     </>
   )
 }
