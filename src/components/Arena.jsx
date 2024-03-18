@@ -8,7 +8,7 @@ import Player from "./Player"
 import GridVisualiser from "./GridVisualiser"
 import GridGame from "./GridGame"
 
-const Arena = ({ levels, setLevels, level, playerDestination, setPlayerDestination }) => {
+const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlayerDestination, setReachedDestination }) => {
   const { camera } = useThree()
   const [grid, setGrid] = useState(null)
   const [gridScale, setGridScale] = useState(0.5)
@@ -58,14 +58,14 @@ const Arena = ({ levels, setLevels, level, playerDestination, setPlayerDestinati
     }
 
     // Load player
-    const door = lvl.doors[0]
+    const door = lvl.doors.find(door => door.destination === levelDoor)
+    if (!door) console.log("Couldn't find door")
     const doorPos = gridToWorld({x: parseInt(door.x), y: 0, z: parseInt(door.z)}, tempGrid.width, tempGrid.height, gridScale)
     setPlayerPos([doorPos.x, 0, doorPos.z])
-    //setPlayerPos([0,0,0])
     //console.log(door, doorPos)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [levels, level])
+  }, [levels, level, levelDoor])
   
   // Pathfinding
   const finder = new Pathfinding.AStarFinder({
@@ -104,13 +104,14 @@ const Arena = ({ levels, setLevels, level, playerDestination, setPlayerDestinati
     if (gridClick[0] == -1) return
 
     setPlayerDestination(gridClick)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gridClick])
 
   return (
     <>
       <ambientLight intensity={1} />
       <directionalLight position={[0,1,0]} castShadow/>
-      <Player playerPos={playerPos} playerDestination={playerDestination} grid={grid} gridScale={gridScale} gridToWorld={gridToWorld} worldToGrid={worldToGrid} findPath={findPath}/>
+      <Player playerPos={playerPos} playerDestination={playerDestination} setReachedDestination={setReachedDestination} grid={grid} gridScale={gridScale} gridToWorld={gridToWorld} worldToGrid={worldToGrid} findPath={findPath}/>
       <GridGame grid={grid} gridScale={gridScale} setGridClick={setGridClick} />
       {/* <GridVisualiser grid={grid} gridScale={gridScale} /> */}
     </>

@@ -77,3 +77,7 @@ button {
 .content button {
   margin: 10px;
 }
+
+.item {
+  position: absolute;
+}

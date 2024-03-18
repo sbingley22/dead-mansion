@@ -4,16 +4,16 @@ import { useAnimations, useGLTF } from '@react-three/drei'
 import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import modelGlb from '../assets/elizabeth-transformed.glb?url'
-import InvisiblePlane from './InvisiblePlane'
 import * as THREE from 'three'
 //import modelGlb from '../assets/dev/elizabeth.glb?url'
 //import modelGlb from "../assets/dev/AsukaExport.glb?url"
 
 const vec3Dir = new THREE.Vector3()
 
-const Player = ({ playerPos, playerDestination, grid, gridScale, gridToWorld, worldToGrid, findPath }) => {
+const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gridScale, gridToWorld, worldToGrid, findPath }) => {
   const group = useRef()
   const { scene, nodes, animations } = useGLTF(modelGlb)
+  // eslint-disable-next-line no-unused-vars
   const { actions, names, mixer } = useAnimations(animations, scene) // scene must be added to useAnimations()
   //console.log(nodes)
 
@@ -66,6 +66,7 @@ const Player = ({ playerPos, playerDestination, grid, gridScale, gridToWorld, wo
     //console.log(position)
 
     if (distance < 0.1) {
+      if (path.length < 2) setReachedDestination(path[0])
       const newPath = [...path.slice(1)]
       setPath(newPath)
       return
@@ -108,6 +109,7 @@ const Player = ({ playerPos, playerDestination, grid, gridScale, gridToWorld, wo
     const newPath = findPath([gridPos.x, gridPos.z], playerDestination, grid)
     //console.log(newPath)
     setPath(newPath)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerDestination])
 
   // Mixer functions. Listen for animation end, etc.
@@ -138,7 +140,6 @@ const Player = ({ playerPos, playerDestination, grid, gridScale, gridToWorld, wo
       dispose={null}
     >
       <primitive object={scene} />
-      {/* <InvisiblePlane scale={[1,1,1]} /> */}
     </group>
   )
 }

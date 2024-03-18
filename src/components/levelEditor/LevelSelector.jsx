@@ -12,6 +12,7 @@ const LevelSelector = () => {
   const [nodeInfo, setNodeInfo] = useState(null)
   const [screenInfo, setScreenInfo] = useState(null)
   const [doors, setDoors] = useState([])
+  const [items, setItems] = useState([])
   const backgroundRef = useRef()
 
   useEffect(() => {
@@ -20,6 +21,7 @@ const LevelSelector = () => {
     const lvl = levels[level]
 
     if (lvl.doors) setDoors(lvl.doors)
+    if (lvl.items) setItems(lvl.items)
 
   }, [levels, level])
 
@@ -72,7 +74,12 @@ const LevelSelector = () => {
         <p>{screenInfo}</p>
         <p>{nodePos}</p>
       </div>
-      <LevelPanel doors={doors} setDoors={setDoors} />
+      <LevelPanel 
+        doors={doors}
+        setDoors={setDoors} 
+        items={items}
+        setItems={setItems}
+      />
     </>
   )
 }
