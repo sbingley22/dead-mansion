@@ -53,8 +53,14 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
   }
 
   const move = (delta) => {
-    if (path.length < 1) {
+    if (path.length == 1) {
       if (currentAnimation.current == "walk1") nextAnimation.current = "idle1"
+      setReachedDestination(path[0])
+      const newPath = [...path.slice(1)]
+      setPath(newPath)
+      return
+    }
+    else if (path.length < 1) {
       return
     }
 

@@ -3,6 +3,7 @@ import { Suspense, useEffect, useRef, useState } from "react"
 import { Canvas } from "@react-three/fiber"
 import levelsJson from '../assets/levels.json'
 import Arena from "./Arena"
+import FloatingPanel from "./FloatingPanel"
 
 const Game = () => {
   const [levels, setLevels] = useState(levelsJson)
@@ -47,6 +48,7 @@ const Game = () => {
       let overItem = null
       if (!lvl.items) return null
       lvl.items.forEach( (item, index) => {
+        if (item.collected) return
         const sx =  parseInt(item.sx)
         const sy =  parseInt(item.sy)
         const radius =  parseInt(item.radius)
@@ -105,7 +107,19 @@ const Game = () => {
           destination: door.destination,
           coord: dest
         }
-        setDestinationAction(action)
+      }
+
+      const overItem = isOverItem(x,y)
+      if (overItem != null) {
+        const item = levels[level].items[overItem]
+        const dest = [parseInt(item.x), parseInt(item.z)]
+        setPlayerDestination(dest)
+
+        action = {
+          type: "item",
+          index: overItem,
+          coord: dest,
+        }
       }
 
       setDestinationAction(action)
@@ -135,6 +149,14 @@ const Game = () => {
       console.log("Going to " + destinationAction.destination)
       loadLevel(destinationAction.destination)
     }
+    else if (destinationAction.type == "item") {
+      // Update levels
+      const tempLevels = {...levels}
+      const item = tempLevels[level].items[destinationAction.index]
+      console.log(item)
+      item.collected = true
+      setLevels(tempLevels)
+    }
 
     setReachedDestination(null)
 
@@ -163,16 +185,33 @@ const Game = () => {
       />
 
       { levels[level].items && levels[level].items.map( (item, index) => (
-        <img key={index} src={"/" + item.image} className="item" style={{top: item.sy - 28 + "px", left: item.sx -28 + "px"}} />
+        !item.collected && <img key={index} src={"/" + item.image} className="item" style={{top: item.sy - 28 + "px", left: item.sx -28 + "px"}} />
       ))
       }
 
       <Canvas shadows style={{cursor: currentCursor}}>
         <Suspense>
-          <Arena levels={levels} setLevels={setLevels} level={level} levelDoor={levelDoor} playerDestination={playerDestination} setPlayerDestination={setPlayerDestination} setReachedDestination={setReachedDestination} />
+          <Arena 
+            levels={levels}
+            setLevels={setLevels} 
+            level={level} 
+            levelDoor={levelDoor} 
+            playerDestination={playerDestination} 
+            setPlayerDestination={setPlayerDestination} 
+            setReachedDestination={setReachedDestination}
+          />
         </Suspense>
       </Canvas>
 
+      <FloatingPanel name="Photographs">
+        1
+      </FloatingPanel>
+      <FloatingPanel name="Status" x={200} >
+        2
+      </FloatingPanel>
+      <FloatingPanel name="Inventory" x={400} >
+        3
+      </FloatingPanel>
     </>
   )
 }
