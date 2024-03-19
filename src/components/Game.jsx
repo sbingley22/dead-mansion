@@ -4,6 +4,8 @@ import { Canvas } from "@react-three/fiber"
 import levelsJson from '../assets/levels.json'
 import Arena from "./Arena"
 import FloatingPanel from "./FloatingPanel"
+import Status from "./Status"
+import InventoryUi from "./InventoryUi"
 
 const Game = () => {
   const [levels, setLevels] = useState(levelsJson)
@@ -16,6 +18,7 @@ const Game = () => {
   const [playerDestination, setPlayerDestination] = useState([-1,-1])
   const [destinationAction, setDestinationAction] = useState(null)
   const [reachedDestination, setReachedDestination] = useState(null)
+  const [status, setStatus] = useState("healthyIdle")
   const [inventory, setInventory] = useState([])
 
   const loadLevel = (lvl) => {
@@ -153,9 +156,20 @@ const Game = () => {
       // Update levels
       const tempLevels = {...levels}
       const item = tempLevels[level].items[destinationAction.index]
-      console.log(item)
       item.collected = true
       setLevels(tempLevels)
+
+      // Update inventory
+      console.log(item)
+      const tempInventory = [...inventory]
+      if (item.type == "key") {
+        tempInventory.push({
+          name: item.name,
+          label: item.name + " key",
+          type: item.type,
+        })
+      }
+      setInventory(tempInventory)
     }
 
     setReachedDestination(null)
@@ -164,6 +178,7 @@ const Game = () => {
   }, [reachedDestination])
 
   if (level == null) {
+    loadLevel("mainHall")
     return (
       <div style={{cursor: currentCursor}}>
         <button onClick={()=>loadLevel("mainHall")}>
@@ -185,7 +200,7 @@ const Game = () => {
       />
 
       { levels[level].items && levels[level].items.map( (item, index) => (
-        !item.collected && <img key={index} src={"/" + item.image} className="item" style={{top: item.sy - 28 + "px", left: item.sx -28 + "px"}} />
+        !item.collected && <img key={index} src={"/items/" + item.image} className="item" style={{top: item.sy - 28 + "px", left: item.sx -28 + "px"}} />
       ))
       }
 
@@ -203,14 +218,20 @@ const Game = () => {
         </Suspense>
       </Canvas>
 
-      <FloatingPanel name="Photographs">
-        1
+      <FloatingPanel 
+        name="Status"
+        backgroundColor={"rgba(0,0,0,0)"}
+      >
+        <Status status={status} />
       </FloatingPanel>
-      <FloatingPanel name="Status" x={200} >
-        2
+      <FloatingPanel
+        name="Photographs"
+        x={300} 
+      >
+        photo
       </FloatingPanel>
-      <FloatingPanel name="Inventory" x={400} >
-        3
+      <FloatingPanel name="Inventory" x={600} >
+        <InventoryUi inventory={inventory} setInventory={setInventory} />
       </FloatingPanel>
     </>
   )

@@ -33,8 +33,8 @@ const FloatingPanel = ( props ) => {
     left: position.x + "px",
     width: props.width,
     minHeight: "30px",
-    backgroundColor: "#313131",
-    border: "1px solid #ccc",
+    backgroundColor: props.backgroundColor,
+    border: props.border,
     borderRadius: "5px",
   }
   const barContainerStyle = {
@@ -44,7 +44,7 @@ const FloatingPanel = ( props ) => {
   }
   const dragableStyle = {
     backgroundColor: "#111111",
-    padding: "2px",
+    padding: "1px",
     marginBottom: "1px",
     cursor: "grab",
     userSelect: "none",
@@ -83,9 +83,11 @@ const FloatingPanel = ( props ) => {
 FloatingPanel.defaultProps = {
   x: 0,
   y: 0,
-  width: "200px",
+  width: "260px",
   name: "",
-  minimized: false
+  minimized: false,
+  backgroundColor: "#313131",
+  border: "4px solid #111"
 }
 
 export default FloatingPanel

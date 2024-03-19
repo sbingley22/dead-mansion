@@ -106,7 +106,7 @@
                 138
             ]
         },
-        "img": "mainHall1.png",
+        "img": "levels/mainHall1.png",
         "pos": {
             "x": 4.1380077793149175,
             "y": 1.071422043312083,
@@ -143,7 +143,7 @@
         ]
     },
     "mainHall2": {
-        "img": "mainHall2.png",
+        "img": "levels/mainHall2.png",
         "grid": {
             "size": [
                 4,
