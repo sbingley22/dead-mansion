@@ -212,6 +212,18 @@
                 "collected": false,
                 "image": "key.png",
                 "scale": 1
+            },
+            {
+                "name": "bandage",
+                "type": "healing",
+                "x": 0,
+                "z": 6,
+                "sx": 180,
+                "sy": 750,
+                "radius": 25,
+                "collected": false,
+                "image": "bandage.png",
+                "scale": 1
             }
         ]
     }

@@ -1,7 +1,14 @@
 /* eslint-disable react/prop-types */
 
 
-const Status = ({ status }) => {
+const Status = ({ playerStats }) => {
+  let status = "healthyIdle"
+  if (playerStats.health < 40) {
+    status = "criticalIdle"
+  } else if (playerStats.health < 70) {
+    status = "scaredIdle"
+  }
+
   const statusImage = `/status/${status}.gif`
 
   const style = {

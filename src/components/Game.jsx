@@ -6,6 +6,7 @@ import Arena from "./Arena"
 import FloatingPanel from "./FloatingPanel"
 import Status from "./Status"
 import InventoryUi from "./InventoryUi"
+import DialogUi from "./DialogUi"
 
 const Game = () => {
   const [levels, setLevels] = useState(levelsJson)
@@ -18,8 +19,11 @@ const Game = () => {
   const [playerDestination, setPlayerDestination] = useState([-1,-1])
   const [destinationAction, setDestinationAction] = useState(null)
   const [reachedDestination, setReachedDestination] = useState(null)
-  const [status, setStatus] = useState("healthyIdle")
   const [inventory, setInventory] = useState([])
+  const [playerStats, setPlayerStats] = useState({
+    health: 30
+  })
+  const [dialog, setDialog] = useState([])
 
   const loadLevel = (lvl) => {
     if (level) setLevelDoor(level)
@@ -102,13 +106,14 @@ const Game = () => {
       if (inDoor != null) {
         const door = levels[level].doors[inDoor]
         const dest = [parseInt(door.x), parseInt(door.z)]
-        //console.log(dest, door.destination)
         setPlayerDestination(dest)
+        //console.log(dest, door.destination)
 
         action = {
           type: "door",
           destination: door.destination,
-          coord: dest
+          coord: dest,
+          key: door.key
         }
       }
 
@@ -149,8 +154,23 @@ const Game = () => {
     }
 
     if (destinationAction.type == "door") {
-      console.log("Going to " + destinationAction.destination)
-      loadLevel(destinationAction.destination)
+      let travel = false
+      const destination = destinationAction.destination
+      if (destinationAction.key) {
+        const containsItem = inventory.some(item => item.name === destination)
+        if (containsItem) {
+          travel = true
+          const updatedInventory = inventory.filter(item => item.name !== destination)
+          setInventory(updatedInventory)
+        } else {
+          setDialog(["Locked"])
+        }
+      } else travel = true
+
+      if (travel) {
+        console.log("Going to " + destination)
+        loadLevel(destination)
+      }
     }
     else if (destinationAction.type == "item") {
       // Update levels
@@ -166,6 +186,12 @@ const Game = () => {
         tempInventory.push({
           name: item.name,
           label: item.name + " key",
+          type: item.type,
+        })
+      } else if (item.type == "healing") {
+        tempInventory.push({
+          name: item.name,
+          label: item.name,
           type: item.type,
         })
       }
@@ -222,7 +248,7 @@ const Game = () => {
         name="Status"
         backgroundColor={"rgba(0,0,0,0)"}
       >
-        <Status status={status} />
+        <Status playerStats={playerStats} />
       </FloatingPanel>
       <FloatingPanel
         name="Photographs"
@@ -231,8 +257,10 @@ const Game = () => {
         photo
       </FloatingPanel>
       <FloatingPanel name="Inventory" x={600} >
-        <InventoryUi inventory={inventory} setInventory={setInventory} />
+        <InventoryUi inventory={inventory} setInventory={setInventory} playerStats={playerStats} setPlayerStats={setPlayerStats} />
       </FloatingPanel>
+
+      {dialog.length > 0 && <DialogUi dialog={dialog} setDialog={setDialog} />}
     </>
   )
 }
