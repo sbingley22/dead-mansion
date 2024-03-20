@@ -19,10 +19,11 @@ const LevelSelector = () => {
     if (!level) return
 
     const lvl = levels[level]
-
+    console.log(doors, lvl.doors)
     if (lvl.doors) setDoors(lvl.doors)
     if (lvl.items) setItems(lvl.items)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levels, level])
 
   useEffect(() => {
@@ -56,7 +57,6 @@ const LevelSelector = () => {
     )
   }
   
-
   const backgroundImg = levels?.[level]?.img ? `url(${levels[level].img})` : ''
   const nodePos = nodeInfo ? `[${nodeInfo[0]},${nodeInfo[1]}]` : ''
   
@@ -68,7 +68,7 @@ const LevelSelector = () => {
         ref={backgroundRef}
       />
       <Canvas>
-        <LevelEditor levels={levels} setLevels={setLevels} level={level} setNodeInfo={setNodeInfo} setScreenInfo={setScreenInfo} doors={doors} />
+        <LevelEditor levels={levels} setLevels={setLevels} level={level} setNodeInfo={setNodeInfo} setScreenInfo={setScreenInfo} doors={doors} items={items} />
       </Canvas>
       <div className="hud-editor">
         <p>{screenInfo}</p>

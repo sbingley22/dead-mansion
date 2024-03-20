@@ -7,7 +7,7 @@ import Pathfinding from "pathfinding"
 import { useEffect, useState } from "react"
 import GridHelper from "./GridHelper"
 
-const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
+const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors, items }) => {
   //console.log(levels)
   const { camera } = useThree()
   const [lockCam, setLockCam] = useState(false)
@@ -48,8 +48,10 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
 
     // Doors
     lvl.doors = doors
+    console.log(doors)
 
     // Items
+    lvl.items = items
 
     return tempLevels
   }
@@ -123,7 +125,7 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);      
     })
-  }, [grid, gridScale])
+  }, [grid, gridScale, doors, items])
 
   // Load selected level
   useEffect(() => {
@@ -164,12 +166,12 @@ const LevelEditor = ({ levels, setLevels, level, setNodeInfo, doors }) => {
     setGrid(tempGrid)
 
     if (camera) {
-      console.log(camera.matrix)
+      //console.log(camera.matrix)
       if (lvl.pos) {
         camera.position.set(lvl.pos.x, lvl.pos.y, lvl.pos.z)
         camera.rotation.set(lvl.rot._x, lvl.rot._y, lvl.rot._z, lvl.rot._order)
       }
-      console.log(camera.matrix)
+      //console.log(camera.matrix)
     }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
