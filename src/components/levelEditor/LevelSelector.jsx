@@ -13,6 +13,7 @@ const LevelSelector = () => {
   const [screenInfo, setScreenInfo] = useState(null)
   const [doors, setDoors] = useState([])
   const [items, setItems] = useState([])
+  const [enemies, setEnemies] = useState([])
   const backgroundRef = useRef()
 
   useEffect(() => {
@@ -22,6 +23,7 @@ const LevelSelector = () => {
     console.log(doors, lvl.doors)
     if (lvl.doors) setDoors(lvl.doors)
     if (lvl.items) setItems(lvl.items)
+    if (lvl.enemies) setEnemies(lvl.enemies)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levels, level])
@@ -79,6 +81,8 @@ const LevelSelector = () => {
         setDoors={setDoors} 
         items={items}
         setItems={setItems}
+        enemies={enemies}
+        setEnemies={setEnemies}
       />
     </>
   )

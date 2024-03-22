@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react';
 
-const LevelPanel = ({ doors, setDoors, items, setItems }) => {
+const LevelPanel = ({ doors, setDoors, items, setItems, enemies, setEnemies }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [initialOffset, setInitialOffset] = useState({ x: 0, y: 0 });
@@ -26,8 +26,9 @@ const LevelPanel = ({ doors, setDoors, items, setItems }) => {
     setIsDragging(false);
   }
 
-  const [selectedDoorIndex, setSelectedDoorIndex] = useState(-1);
-  const [selectedItemIndex, setSelectedItemIndex] = useState(-1);
+  const [selectedDoorIndex, setSelectedDoorIndex] = useState(-1)
+  const [selectedItemIndex, setSelectedItemIndex] = useState(-1)
+  const [selectedEnemyIndex, setSelectedEnemyIndex] = useState(-1)
 
   // Doors
   const handleDoorInputChange = (e, index) => {
@@ -75,6 +76,31 @@ const LevelPanel = ({ doors, setDoors, items, setItems }) => {
   const handleItemAdd = () => {
     const newItem = { name: "new", type: "key", x: 0, z: 0, sx: 0, sy: 0, radius: 25, collected: false, img: "", scale: 1 }
     setItems([...items, newItem])
+  }
+
+
+  // Enemies
+  const handleEnemyInputChange = (e, index) => {
+    const { name, value, type } = e.target;
+    const updatedEnemies = [...enemies];
+  
+    if (type === 'checkbox') {
+      updatedEnemies[index][name] = e.target.checked;
+    } else {
+      updatedEnemies[index][name] = value;
+    }
+  
+    setDoors(updatedEnemies);
+  }
+  const handleEnemyDelete = (index) => {
+    const updatedEnemies = [...enemies]
+    updatedEnemies.splice(index, 1)
+    setEnemies(updatedEnemies)
+    setSelectedEnemyIndex(-1)
+  }
+  const handleEnemyAdd = () => {
+    const newEnemy = { x: 0, z: 0, type: "queen", status: 1 }
+    setEnemies([...enemies, newEnemy])
   }
 
   return (
@@ -295,6 +321,55 @@ const LevelPanel = ({ doors, setDoors, items, setItems }) => {
               </div>
             )}
             <button onClick={handleItemAdd}>Add Item</button>
+          </div>
+          <div>
+            <h4>Enemies:</h4>
+            <select 
+              value={selectedEnemyIndex} 
+              onChange={(e) => setSelectedEnemyIndex(parseInt(e.target.value))}
+              >
+                <option value={-1}>Select an enemy</option>
+                {enemies.map((enemy,index) => (
+                  <option key={index} value={index}>
+                    {enemy.name}
+                  </option>
+                ))}
+            </select>
+            {selectedEnemyIndex !== -1 && (
+              <div>
+                <div>
+                  <label>type</label>
+                  <input
+                    type='text'
+                    name="type"
+                    value={enemies[selectedEnemyIndex].type}
+                    onChange={(e) => handleEnemyInputChange(e, selectedEnemyIndex)}
+                  />
+                </div>
+                <div>
+                  <label>grid x</label>
+                  <input
+                    type='number'
+                    name="x"
+                    min={0}
+                    value={enemies[selectedEnemyIndex].x}
+                    onChange={(e) => handleEnemyInputChange(e, selectedEnemyIndex)}
+                  />
+                </div>
+                <div>
+                  <label>grid z</label>
+                  <input
+                    type='number'
+                    name="z"
+                    min={0}
+                    value={enemies[selectedEnemyIndex].z}
+                    onChange={(e) => handleEnemyInputChange(e, selectedEnemyIndex)}
+                  />
+                </div>
+                <button onClick={() => handleEnemyDelete(selectedEnemyIndex)}>Delete</button>
+              </div>
+            )}
+            <button onClick={handleEnemyAdd}>Add Enemy</button>
           </div>
         </div>
       </div>

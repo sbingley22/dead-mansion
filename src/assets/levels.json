@@ -370,6 +370,13 @@
                 "sy2": "800",
                 "key": false
             }
+        ],
+        "enemies": [
+            {
+                "x": 5,
+                "z": 0,
+                "type": "queen"
+            }
         ]
     }
 }

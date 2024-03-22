@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unknown-property */
+import * as THREE from 'three'
 import { useEffect, useState } from "react"
 import { useThree } from "@react-three/fiber"
 import Pathfinding from "pathfinding"
@@ -7,13 +8,20 @@ import Player from "./Player"
 // eslint-disable-next-line no-unused-vars
 import GridVisualiser from "./GridVisualiser"
 import GridGame from "./GridGame"
+import NightmareQueen from "./NightmareQueen"
+import { Environment } from "@react-three/drei"
 
-const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlayerDestination, setReachedDestination }) => {
-  const { camera } = useThree()
+const screenPosition = new THREE.Vector3()
+const worldPosition = new THREE.Vector3()
+
+const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlayerDestination, setReachedDestination, rmb, takeShot, setTakeShot, setShotCharge }) => {
+  const { scene, camera, mouse, viewport } = useThree()
+
   const [grid, setGrid] = useState(null)
   const [gridScale, setGridScale] = useState(0.5)
   const [playerPos, setPlayerPos] = useState([0,0,0])
   const [gridClick, setGridClick] = useState([-1,-1])
+  const [enemies, setEnemies] = useState([])
 
   // Load level
   useEffect(() => {
@@ -64,6 +72,25 @@ const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlay
     setPlayerPos([doorPos.x, 0, doorPos.z])
     //console.log(door, doorPos)
 
+    // Load enemies
+    const enemyData = lvl.enemies
+    if (enemyData) {
+      const tempEnemies = []
+      enemyData.forEach((en, index) => {
+        const enemyPos = gridToWorld({x: parseInt(en.x), y: 0, z: parseInt(en.z)}, tempGrid.width, tempGrid.height, gridScale)
+        console.log(en.x, en.z, enemyPos)
+        tempEnemies.push({
+          id: index,
+          gx: enemyPos.x,
+          gz: enemyPos.z,
+          type: en.type,
+          health: 100
+        })
+      })
+      setEnemies(tempEnemies)
+      //console.log(tempEnemies)
+    }
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levels, level, levelDoor])
   
@@ -100,6 +127,43 @@ const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlay
     return({ x: newX, y: 0, z: newZ })
   }
 
+  const findNodeByName = (node, name) => {
+    if (node.name === name) {
+      return node;
+    }
+
+    if (node.children && node.children.length > 0) {
+      for (let child of node.children) {
+        const foundNode = findNodeByName(child, name);
+        if (foundNode) {
+          return foundNode;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const getMousePos = () => {
+    return {x: mouse.x, y: mouse.y}
+    const x = (mouse.x * viewport.width) / 2
+    const y = (mouse.y * viewport.height) / 2
+    return {x: x, y: y}
+  }
+
+  const worldToScreen = (worldPos) => {
+    worldPosition.copy(worldPos)
+    worldPosition.y += 1
+    screenPosition.copy(worldPosition).project(camera);
+
+    // Convert screen coordinates from normalized device coordinates to actual screen coordinates
+    //screenPosition.x = (screenPosition.x + 1) / 2 * window.innerWidth;
+    //screenPosition.y = -(screenPosition.y - 1) / 2 * window.innerHeight;
+
+    return screenPosition;
+  };
+
+  // Move to grid pos
   useEffect(()=>{
     if (gridClick[0] == -1) return
 
@@ -107,11 +171,66 @@ const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlay
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gridClick])
 
+  // Take a photo
+  useEffect(()=>{
+    if (takeShot == -1) return
+
+    const shotPower = Math.floor(takeShot)
+    
+    enemies.forEach( en => {
+      const enemy = findNodeByName(scene, en.type+en.id)
+      //console.log(enemy)
+      const mousePos = getMousePos()
+      //console.log(mousePos)      
+      const screenPos = worldToScreen(enemy.position)
+      //console.log(screenPos)
+
+      const radius = 100
+
+      if (mousePos.x < screenPos.x - radius) return
+      if (mousePos.x > screenPos.x + radius) return
+      if (mousePos.y < screenPos.y - radius) return
+      if (mousePos.y > screenPos.y + radius) return
+
+      // hit enemy
+      enemy.health -= shotPower * 20
+      enemy.actionFlag = "hurt"
+    })
+  },[takeShot])
+
   return (
     <>
-      <ambientLight intensity={1} />
+      <ambientLight intensity={0} />
+      <Environment preset="sunset" />
       <directionalLight position={[0,1,0]} castShadow/>
-      <Player playerPos={playerPos} playerDestination={playerDestination} setReachedDestination={setReachedDestination} grid={grid} gridScale={gridScale} gridToWorld={gridToWorld} worldToGrid={worldToGrid} findPath={findPath}/>
+
+      <Player 
+        playerPos={playerPos}
+        playerDestination={playerDestination}
+        setReachedDestination={setReachedDestination}
+        grid={grid}
+        gridScale={gridScale}
+        gridToWorld={gridToWorld}
+        worldToGrid={worldToGrid}
+        findPath={findPath}
+        rmb={rmb}
+        setTakeShot={setTakeShot}
+        setShotCharge={setShotCharge}
+      />
+
+      {enemies.map( en => (
+        <NightmareQueen
+          key={en.id}
+          id={en.id}
+          initialPos={[en.gx,0,en.gz]}
+          grid={grid}
+          gridScale={gridScale}
+          gridToWorld={gridToWorld}
+          worldToGrid={worldToGrid}
+          findPath={findPath}
+        />          
+      ))}
+      
       <GridGame grid={grid} gridScale={gridScale} setGridClick={setGridClick} />
       {/* <GridVisualiser grid={grid} gridScale={gridScale} /> */}
     </>

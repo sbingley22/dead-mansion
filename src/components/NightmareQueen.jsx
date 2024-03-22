@@ -3,12 +3,12 @@
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import modelGlb from '../assets/elizabeth-transformed.glb?url'
+import modelGlb from '../assets/NightmareQueen-transformed.glb?url'
 import * as THREE from 'three'
 
 const vec3Dir = new THREE.Vector3()
 
-const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gridScale, gridToWorld, worldToGrid, findPath, rmb, setTakeShot, setShotCharge }) => {
+const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToGrid, findPath }) => {
   const group = useRef()
   const { scene, nodes, animations } = useGLTF(modelGlb)
   // eslint-disable-next-line no-unused-vars
@@ -17,20 +17,24 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
 
   // Initialise nodes
   useEffect(() => {
-    console.log(nodes)
+    //console.log(nodes)
+    // Object.keys(nodes).forEach((nodeName) => {
+    //   const node = nodes[nodeName]
+    //   if (node.name === "SkinnedMesh") {
+    //     node.castShadow = true
+    //   }
+    // })
     let node = "Genesis8FemaleShape"
     if (nodes[node]) nodes[node].castShadow = true
     node = "Genesis8Female_6"
     if (nodes[node]) nodes[node].castShadow = true
-    node = "CameraShape"
-    if (nodes[node]) nodes[node].visible = false
   }, [nodes])
 
+  const playerRef = useRef(null)
   const currentAnimation = useRef("idle1")
   const nextAnimation = useRef("idle1")
   const [ path, setPath ] = useState([])
-  const action = useRef(null)
-  const actionTimer = useRef(0)
+  const [ dead, setDead ] = useState(false)
 
   const updateAnimation = () => {
     if (!actions) return
@@ -47,11 +51,8 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
   }
 
   const move = (delta) => {
-    if (rmb) return
-
     if (path.length == 1) {
       if (currentAnimation.current == "walk1") nextAnimation.current = "idle1"
-      setReachedDestination(path[0])
       const newPath = [...path.slice(1)]
       setPath(newPath)
       return
@@ -68,7 +69,6 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
     //console.log(position)
 
     if (distance < 0.1) {
-      if (path.length < 2) setReachedDestination(path[0])
       const newPath = [...path.slice(1)]
       setPath(newPath)
       return
@@ -101,66 +101,29 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
     group.current.rotation.y = newRotation;
   }
 
-  const updateActions = (delta) => {
-    if (rmb) {
-      if (path > 0) setPath([])
-      if (action.current === "hurt") {
-        if (currentAnimation.current === "hurt1") return
-        nextAnimation.current === "hurt1"
-        actionTimer.current = 0
-        setShotCharge(0)
-      }
-      else if (action.current === "aim") {
-        actionTimer.current += delta
-        const timerFloor = Math.floor(actionTimer.current)
-        setShotCharge(prev => {
-          if (timerFloor === prev) return prev
-          return timerFloor
-        })
-      }
-      else {
-        action.current = "aim"
-        nextAnimation.current = "aim1"
-        //console.log(nextAnimation.current)
-      }
-    } else {
-      if (action.current === "aim") {
-        // take photo
-        setTakeShot(actionTimer.current)
-        action.current = null
-        actionTimer.current = 0
-        nextAnimation.current = "idle1"
-      }
+  const updateActions = () => {
+    const health = group.current.health
+    if (health <= 0) {
+      setDead(true)
+    }
+
+    const actionFlag = group.current.actionFlag
+    console.log(actionFlag)
+    if (actionFlag == "") return
+
+    if (actionFlag == "hurt") {
+      nextAnimation.current = "hurt1"
+      group.current.actionFlag = ""
     }
   }
 
-  const updateModel = () => {
-    let node = "CameraShape"
-    if (currentAnimation.current === "aim1" || currentAnimation.current === "hurt1") {
-      if (nodes[node]) nodes[node].visible = true
-    } else if (nodes[node]) nodes[node].visible = false
-  }
-
-  // Player wants to move
-  useEffect(() => {
-    if (playerDestination[0] == -1) return
-
-    const worldPos = group.current.position
-    const gridPos = worldToGrid(worldPos, grid.width, grid.height, gridScale)
-    //console.log(worldPos, gridPos)
-    const newPath = findPath([gridPos.x, gridPos.z], playerDestination, grid)
-    //console.log(newPath)
-    setPath(newPath)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerDestination])
-
   // Mixer functions. Listen for animation end, etc.
   useEffect(() => {
-    //actions['hurt'].repetitions = 1
-    //actions['hurt'].clampWhenFinished = true
+    actions['hurt1'].repetitions = 1
+    actions['hurt1'].clampWhenFinished = true
 
     mixer.addEventListener('finished', (e) => {
-      console.log(e)
+      //console.log(e)
       nextAnimation.current = "idle1"
     })
 
@@ -170,25 +133,39 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
   // eslint-disable-next-line no-unused-vars
   useFrame((state, delta) => {
     if (!scene) return
+    if (dead) return
 
-    updateActions(delta)
-    move(delta)
+    // find player
+    if (!playerRef.current) {
+      // find reference to player
+      const sceneChildren = state.scene.children
+      sceneChildren.forEach((node) => {
+        if (node.name === "Player") {
+          playerRef.current = node
+          //console.log(playerRef.current)
+        }
+      })
+    }
+
+    updateActions()
     updateAnimation()
-    updateModel()
+    move(delta)
   })
 
   return (
     <group 
       ref={group}
-      position={[playerPos[0],0,playerPos[2]]}
+      position={initialPos}
       dispose={null}
-      name='Player'
+      name={"queen"+id}
+      health={100}
+      actionFlag={""}
     >
       <primitive object={scene} />
     </group>
   )
 }
 
-export default Player
+export default NightmareQueen
 
 useGLTF.preload(modelGlb)

@@ -21,14 +21,17 @@ const Game = () => {
   const [reachedDestination, setReachedDestination] = useState(null)
   const [inventory, setInventory] = useState([])
   const [playerStats, setPlayerStats] = useState({
-    health: 30
+    health: 50
   })
   const [dialog, setDialog] = useState([])
+  const [rmb, setRmb] = useState(false)
+  const [takeShot, setTakeShot] = useState(-1)
+  const [shotCharge, setShotCharge] = useState(0)
 
   const loadLevel = (lvl) => {
     if (level) setLevelDoor(level)
     setLevel(lvl)
-  }
+  }  
 
   // Handle mouse move and click
   useEffect(() => {
@@ -96,6 +99,10 @@ const Game = () => {
       const backgroundDiv = backgroundRef.current
       if (!backgroundDiv) return
 
+      if (e.button === 2) {
+        setRmb(true)
+      }
+
       const rect = backgroundDiv.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
@@ -133,11 +140,22 @@ const Game = () => {
       setDestinationAction(action)
     }
 
+    const handleMouseUp = (e) => {
+      if (e.button === 2) {
+        setRmb(false)
+        setShotCharge(0)
+      }
+    }
+
     window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("click", handleMouseClick);
+    window.addEventListener("mousedown", handleMouseClick);
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("contextmenu", (e) => e.preventDefault())
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("click", handleMouseClick);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("contextmenu", (e) => e.preventDefault());  
     };
   }, [levels, level]);
 
@@ -168,7 +186,7 @@ const Game = () => {
       } else travel = true
 
       if (travel) {
-        console.log("Going to " + destination)
+        //console.log("Going to " + destination)
         loadLevel(destination)
       }
     }
@@ -215,7 +233,11 @@ const Game = () => {
     )
   }  
 
-  const backgroundImg = levels?.[level]?.img ? `url(${levels[level].img})` : '';  
+  const backgroundImg = levels?.[level]?.img ? `url(${levels[level].img})` : '';
+  let photoBorder = "4px solid #111"
+  if (shotCharge == 1) photoBorder = "4px solid #555"
+  else if (shotCharge == 2) photoBorder = "4px solid #999"
+  else if (shotCharge >= 3) photoBorder = "4px solid #EEE"
   
   return (
     <>
@@ -240,6 +262,10 @@ const Game = () => {
             playerDestination={playerDestination} 
             setPlayerDestination={setPlayerDestination} 
             setReachedDestination={setReachedDestination}
+            rmb={rmb}
+            takeShot={takeShot}
+            setTakeShot={setTakeShot}
+            setShotCharge={setShotCharge}
           />
         </Suspense>
       </Canvas>
@@ -252,7 +278,8 @@ const Game = () => {
       </FloatingPanel>
       <FloatingPanel
         name="Photographs"
-        x={300} 
+        x={300}
+        border={photoBorder}
       >
         photo
       </FloatingPanel>
