@@ -5,12 +5,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import modelGlb from '../assets/NightmareQueen-transformed.glb?url'
 import * as THREE from 'three'
+import { useSkinnedMeshClone } from './SkinnedMeshClone'
 
 const vec3Dir = new THREE.Vector3()
 
-const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToGrid, findPath, pointerOverEnemy }) => {
+const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToGrid, findPath, pointerOverEnemy, setPlayAudio }) => {
   const group = useRef()
-  const { scene, nodes, animations } = useGLTF(modelGlb)
+  const { scene, nodes, animations } = useSkinnedMeshClone(modelGlb)
   // eslint-disable-next-line no-unused-vars
   const { actions, names, mixer } = useAnimations(animations, scene) // scene must be added to useAnimations()
   //console.log(nodes)
@@ -117,6 +118,9 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
       group.current.actionFlag = "claw"
       playerRef.current.actionFlag = "hurt"
     }
+
+    // Random growl
+    if (Math.random() < 1/200) setPlayAudio("ZombieGrowl")
 
     // Sort action flags
     const actionFlag = group.current.actionFlag

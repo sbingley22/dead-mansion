@@ -14,7 +14,7 @@ import { Environment } from "@react-three/drei"
 const screenPosition = new THREE.Vector3()
 const worldPosition = new THREE.Vector3()
 
-const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlayerDestination, setReachedDestination, rmb, takeShot, setTakeShot, setShotCharge, playerStats, setPlayerStats, setPhotoImg }) => {
+const Arena = ({ levels, level, levelDoor, playerDestination, setPlayerDestination, setReachedDestination, rmb, takeShot, setTakeShot, setShotCharge, playerStats, setPlayerStats, setPhotoImg, setPlayAudio }) => {
   const { scene, camera, mouse } = useThree()
 
   const [grid, setGrid] = useState(null)
@@ -257,6 +257,7 @@ const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlay
         setShotCharge={setShotCharge}
         playerStats={playerStats}
         setPlayerStats={setPlayerStats}
+        setPlayAudio={setPlayAudio}
       />
 
       {enemies.map( en => (
@@ -270,6 +271,7 @@ const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlay
           worldToGrid={worldToGrid}
           findPath={findPath}
           pointerOverEnemy={pointerOverEnemy}
+          setPlayAudio={setPlayAudio}
         />          
       ))}
       

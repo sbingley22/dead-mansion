@@ -716,6 +716,16 @@
                 "sx2": 940,
                 "sy2": 425,
                 "key": false
+            },
+            {
+                "x": 3,
+                "z": 0,
+                "destination": "pianoRoom2",
+                "sx1": 600,
+                "sy1": 330,
+                "sx2": 620,
+                "sy2": 400,
+                "key": false
             }
         ],
         "items": [],

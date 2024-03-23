@@ -8,7 +8,7 @@ import * as THREE from 'three'
 
 const vec3Dir = new THREE.Vector3()
 
-const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gridScale, gridToWorld, worldToGrid, findPath, rmb, setTakeShot, setShotCharge, playerStats, setPlayerStats }) => {
+const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gridScale, gridToWorld, worldToGrid, findPath, rmb, setTakeShot, setShotCharge, playerStats, setPlayerStats, setPlayAudio }) => {
   const group = useRef()
   const { scene, nodes, animations } = useGLTF(modelGlb)
   // eslint-disable-next-line no-unused-vars
@@ -162,6 +162,8 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
       tempPlayerStats.health -= 20
       setPlayerStats(tempPlayerStats)
       //console.log(playerStats)
+
+      setPlayAudio("PlayerHurt")
     }
   }
 
@@ -180,7 +182,7 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
     const gridPos = worldToGrid(worldPos, grid.width, grid.height, gridScale)
     //console.log(worldPos, gridPos)
     const newPath = findPath([gridPos.x, gridPos.z], playerDestination, grid)
-    console.log("Player Destination Use Effect:", newPath)
+    //console.log("Player Destination Use Effect:", newPath)
     setPath(newPath)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerDestination])

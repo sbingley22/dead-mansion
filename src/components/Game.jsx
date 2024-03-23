@@ -12,7 +12,7 @@ import PhotoUi from "./PhotoUi"
 const Game = () => {
   const [levels, setLevels] = useState(levelsJson)
   const [level, setLevel] = useState(null)
-  const [levelDoor, setLevelDoor] = useState("study1")
+  const [levelDoor, setLevelDoor] = useState("mainHall3")
   //console.log(levels)
   const backgroundRef = useRef(null)
   const [currentCursor, setCurrentCursor] = useState('crosshair');
@@ -29,6 +29,11 @@ const Game = () => {
   const [takeShot, setTakeShot] = useState(-1)
   const [shotCharge, setShotCharge] = useState(0)
   const [photoImg, setPhotoImg] = useState("nothing")
+
+  const [playAudio, setPlayAudio] = useState(null)
+  const cameraClickAudio = useRef()
+  const fHurtAudio = useRef()
+  const zombieGrowlAudio = useRef()
 
   const loadLevel = (lvl) => {
     if (level) setLevelDoor(level)
@@ -176,6 +181,12 @@ const Game = () => {
       setDestinationAction(null)
     }
 
+    if (destinationAction.destination == "pianoRoom2") {
+      // End of demo
+      setDialog(["What ever is beyond this door sends a shiver up my spine...", "END OF DEMO"])
+      return
+    }
+
     if (destinationAction.type == "door") {
       let travel = false
       const destination = destinationAction.destination
@@ -237,12 +248,35 @@ const Game = () => {
   useEffect(() => {
     //console.log(playerStats.health)
     if (playerStats.health < 0) {
-      setDialog(["Argh! My head!"])
+      setDialog(["'Argh! My head!'", "Your vision fades to black."])
+      setTimeout(()=>{
+        window.location.reload()
+      }, 2000)
     }
   }, [playerStats])
 
+  // Camera shot
+  useEffect(() => {
+    if (takeShot > 0) {
+      let volume = 0.25 * takeShot
+      if (volume > 1) volume = 1
+      cameraClickAudio.current.play()
+      cameraClickAudio.current.volume = 0.33 * volume
+    }
+  }, [takeShot])
+
+  // Play Audio
+  useEffect(() => {
+    if (playAudio == "PlayerHurt") {
+      fHurtAudio.current.play()
+    }
+    else if (playAudio == "ZombieGrowl") {
+      zombieGrowlAudio.current.play()
+    }
+  }, [playAudio])
+
   if (level == null) {
-    loadLevel("mainHall")
+    loadLevel("bedroom1")
     return (
       <div style={{cursor: currentCursor}}>
         <button onClick={()=>loadLevel("mainHall")}>
@@ -291,6 +325,7 @@ const Game = () => {
             playerStats={playerStats}
             setPlayerStats={setPlayerStats}
             setPhotoImg={setPhotoImg}
+            setPlayAudio={setPlayAudio}
           />
         </Suspense>
       </Canvas>
@@ -314,6 +349,32 @@ const Game = () => {
       </FloatingPanel>
 
       {dialog.length > 0 && <DialogUi dialog={dialog} setDialog={setDialog} />}
+      
+      <audio
+        id="bgMusic"
+        src='./audio/creepy-music2.wav'
+        loop
+        autoPlay
+      />
+
+      <audio
+        ref={cameraClickAudio}
+        id="cameraClickAudio"
+        src='./audio/camera-click.wav'
+      />
+
+      <audio
+        ref={fHurtAudio}
+        id="fHurtAudio"
+        src='./audio/f-hurt.ogg'
+      />
+
+      <audio
+        ref={zombieGrowlAudio}
+        id="zombieGrowlAudio"
+        src='./audio/zombie-growl.wav'
+      />
+
     </>
   )
 }
