@@ -21,7 +21,7 @@ const Game = () => {
   const [reachedDestination, setReachedDestination] = useState(null)
   const [inventory, setInventory] = useState([])
   const [playerStats, setPlayerStats] = useState({
-    health: 50
+    health: 80
   })
   const [dialog, setDialog] = useState([])
   const [rmb, setRmb] = useState(false)
@@ -101,6 +101,7 @@ const Game = () => {
 
       if (e.button === 2) {
         setRmb(true)
+        return
       }
 
       const rect = backgroundDiv.getBoundingClientRect()
@@ -221,6 +222,14 @@ const Game = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reachedDestination])
 
+  // Player stats updated
+  useEffect(() => {
+    //console.log(playerStats.health)
+    if (playerStats.health < 0) {
+      setDialog(["Argh! My head!"])
+    }
+  }, [playerStats])
+
   if (level == null) {
     loadLevel("mainHall")
     return (
@@ -266,6 +275,8 @@ const Game = () => {
             takeShot={takeShot}
             setTakeShot={setTakeShot}
             setShotCharge={setShotCharge}
+            playerStats={playerStats}
+            setPlayerStats={setPlayerStats}
           />
         </Suspense>
       </Canvas>

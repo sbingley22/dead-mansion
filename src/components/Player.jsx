@@ -8,7 +8,7 @@ import * as THREE from 'three'
 
 const vec3Dir = new THREE.Vector3()
 
-const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gridScale, gridToWorld, worldToGrid, findPath, rmb, setTakeShot, setShotCharge }) => {
+const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gridScale, gridToWorld, worldToGrid, findPath, rmb, setTakeShot, setShotCharge, playerStats, setPlayerStats }) => {
   const group = useRef()
   const { scene, nodes, animations } = useGLTF(modelGlb)
   // eslint-disable-next-line no-unused-vars
@@ -18,11 +18,13 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
   // Initialise nodes
   useEffect(() => {
     console.log(nodes)
-    let node = "Genesis8FemaleShape"
-    if (nodes[node]) nodes[node].castShadow = true
-    node = "Genesis8Female_6"
-    if (nodes[node]) nodes[node].castShadow = true
-    node = "CameraShape"
+    // let nodeArray = ["Genesis8FemaleShape", "Genesis8Female_6", "Genesis8Female_1","Genesis8Female_2","Genesis8Female_3","Genesis8Female_4","Genesis8Female_5","Genesis8Female_7","Genesis8Female_8","Genesis8Female_9","Genesis8Female_10","Genesis8Female_11","Genesis8Female_12","Genesis8Female_13","Genesis8Female_14","Genesis8Female_15","Genesis8Female_16"]
+    let nodeArray = ["Genesis8FemaleShape", "Genesis8Female_1"]
+    nodeArray.forEach(node => {
+      if (nodes[node]) nodes[node].castShadow = true
+    })
+
+    let node = "CameraShape"
     if (nodes[node]) nodes[node].visible = false
   }, [nodes])
 
@@ -44,6 +46,12 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
     //console.log(mixer)
     //console.log(actions)
     //console.log(currentAnimation.current)
+  }
+
+  const rotateTo = (targetPosition) => {
+    vec3Dir.subVectors(targetPosition, group.current.position).normalize()
+    const targetRotation = Math.atan2(vec3Dir.x, vec3Dir.z)
+    group.current.rotation.y = targetRotation
   }
 
   const move = (delta) => {
@@ -75,7 +83,7 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
     }
 
     // Update position
-    const speed = 1.5 * delta
+    const speed = 2.5 * delta
     vec3Dir.subVectors(worldNode, position).normalize()
     position.addScaledVector(vec3Dir, speed)
     //console.log(vec3Dir)
@@ -104,19 +112,21 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
   const updateActions = (delta) => {
     if (rmb) {
       if (path > 0) setPath([])
-      if (action.current === "hurt") {
-        if (currentAnimation.current === "hurt1") return
-        nextAnimation.current === "hurt1"
-        actionTimer.current = 0
-        setShotCharge(0)
-      }
-      else if (action.current === "aim") {
+      
+      if (action.current === "aim") {
         actionTimer.current += delta
         const timerFloor = Math.floor(actionTimer.current)
         setShotCharge(prev => {
           if (timerFloor === prev) return prev
           return timerFloor
         })
+
+        // Rotate to face enemy
+        if (group.current.rotationFlag) {
+          //console.log("Rotate to", group.current.rotationFlag)
+          rotateTo(group.current.rotationFlag)
+          group.current.rotationFlag = null
+        }
       }
       else {
         action.current = "aim"
@@ -131,6 +141,23 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
         actionTimer.current = 0
         nextAnimation.current = "idle1"
       }
+    }
+
+    // Action flags
+    const actionFlag = group.current.actionFlag
+    //console.log(actionFlag)
+
+    if (actionFlag === "hurt") {
+      if (currentAnimation.current === "hurt1") return
+      nextAnimation.current = "hurt1"
+      actionTimer.current = 0
+      setShotCharge(0)
+      group.current.actionFlag = null
+
+      const tempPlayerStats = {...playerStats}
+      tempPlayerStats.health -= 20
+      setPlayerStats(tempPlayerStats)
+      //console.log(playerStats)
     }
   }
 
@@ -156,11 +183,12 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
 
   // Mixer functions. Listen for animation end, etc.
   useEffect(() => {
-    //actions['hurt'].repetitions = 1
-    //actions['hurt'].clampWhenFinished = true
+    actions['hurt1'].repetitions = 1
+    actions['hurt1'].clampWhenFinished = true
 
+    // eslint-disable-next-line no-unused-vars
     mixer.addEventListener('finished', (e) => {
-      console.log(e)
+      //console.log(e)
       nextAnimation.current = "idle1"
     })
 
@@ -170,6 +198,7 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
   // eslint-disable-next-line no-unused-vars
   useFrame((state, delta) => {
     if (!scene) return
+    if (playerStats.health < 0) return
 
     updateActions(delta)
     move(delta)
@@ -183,6 +212,8 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
       position={[playerPos[0],0,playerPos[2]]}
       dispose={null}
       name='Player'
+      actionFlag={null}
+      rotationFlag={null}
     >
       <primitive object={scene} />
     </group>

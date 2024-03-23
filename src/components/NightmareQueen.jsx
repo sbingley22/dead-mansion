@@ -8,7 +8,7 @@ import * as THREE from 'three'
 
 const vec3Dir = new THREE.Vector3()
 
-const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToGrid, findPath }) => {
+const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToGrid, findPath, pointerOverEnemy }) => {
   const group = useRef()
   const { scene, nodes, animations } = useGLTF(modelGlb)
   // eslint-disable-next-line no-unused-vars
@@ -24,10 +24,10 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
     //     node.castShadow = true
     //   }
     // })
-    let node = "Genesis8FemaleShape"
-    if (nodes[node]) nodes[node].castShadow = true
-    node = "Genesis8Female_6"
-    if (nodes[node]) nodes[node].castShadow = true
+    let nodeArray = ["Genesis8FemaleShape", "Genesis8Female_1"]
+    nodeArray.forEach(node => {
+      if (nodes[node]) nodes[node].castShadow = true
+    })
   }, [nodes])
 
   const playerRef = useRef(null)
@@ -35,6 +35,7 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
   const nextAnimation = useRef("idle1")
   const [ path, setPath ] = useState([])
   const [ dead, setDead ] = useState(false)
+  const frameCount = useRef(0)
 
   const updateAnimation = () => {
     if (!actions) return
@@ -51,6 +52,8 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
   }
 
   const move = (delta) => {
+    if (currentAnimation.current == "claw1") return
+    if (currentAnimation.current == "hurt1") return
     if (path.length == 1) {
       if (currentAnimation.current == "walk1") nextAnimation.current = "idle1"
       const newPath = [...path.slice(1)]
@@ -75,7 +78,7 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
     }
 
     // Update position
-    const speed = 1.5 * delta
+    const speed = 1.0 * delta
     vec3Dir.subVectors(worldNode, position).normalize()
     position.addScaledVector(vec3Dir, speed)
     //console.log(vec3Dir)
@@ -107,21 +110,53 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
       setDead(true)
     }
 
+    // Attack player?
+    const distance = playerRef.current.position.distanceTo(group.current.position)
+    if (distance < 1.5 && currentAnimation.current != "claw1") {
+      //console.log(distance)
+      group.current.actionFlag = "claw"
+      playerRef.current.actionFlag = "hurt"
+    }
+
+    // Sort action flags
     const actionFlag = group.current.actionFlag
-    console.log(actionFlag)
+    //console.log(actionFlag)
     if (actionFlag == "") return
 
     if (actionFlag == "hurt") {
       nextAnimation.current = "hurt1"
       group.current.actionFlag = ""
     }
+    else if (actionFlag == "claw") {
+      nextAnimation.current = "claw1"
+      group.current.actionFlag = ""
+    }
+  }
+
+  const updatePath = () => {
+    if (currentAnimation.current == "claw1") return
+    if (currentAnimation.current == "hurt1") return
+
+    const worldPos = group.current.position
+    const gridPos = worldToGrid(worldPos, grid.width, grid.height, gridScale)
+    //console.log(worldPos, gridPos)
+
+    const playerGrid = worldToGrid(playerRef.current.position, grid.width, grid.height, gridScale)
+    const playerDestination = [playerGrid.x, playerGrid.z]
+    //console.log(gridPos, playerDestination)
+    const newPath = findPath([gridPos.x, gridPos.z], playerDestination, grid)
+    //console.log(newPath)
+    setPath(newPath)
   }
 
   // Mixer functions. Listen for animation end, etc.
   useEffect(() => {
     actions['hurt1'].repetitions = 1
     actions['hurt1'].clampWhenFinished = true
+    actions['claw1'].repetitions = 1
+    actions['claw1'].clampWhenFinished = true
 
+    // eslint-disable-next-line no-unused-vars
     mixer.addEventListener('finished', (e) => {
       //console.log(e)
       nextAnimation.current = "idle1"
@@ -134,6 +169,7 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
   useFrame((state, delta) => {
     if (!scene) return
     if (dead) return
+    if (group.current.actionFlag == "playerDead") return
 
     // find player
     if (!playerRef.current) {
@@ -147,10 +183,18 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
       })
     }
 
+    frameCount.current += 1
+
     updateActions()
-    updateAnimation()
     move(delta)
+    if (frameCount.current % 10 == 0) updatePath()
+    updateAnimation()
   })
+
+  const handlePointerOver = () => {
+    pointerOverEnemy(group.current.position)
+    //console.log("Pointer over enemy")
+  }
 
   return (
     <group 
@@ -160,6 +204,7 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
       name={"queen"+id}
       health={100}
       actionFlag={""}
+      onPointerOver={handlePointerOver}
     >
       <primitive object={scene} />
     </group>
