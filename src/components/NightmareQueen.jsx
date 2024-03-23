@@ -78,7 +78,7 @@ const NightmareQueen = ({ id, initialPos, grid, gridScale, gridToWorld, worldToG
     }
 
     // Update position
-    const speed = 1.0 * delta
+    const speed = 0.8 * delta
     vec3Dir.subVectors(worldNode, position).normalize()
     position.addScaledVector(vec3Dir, speed)
     //console.log(vec3Dir)

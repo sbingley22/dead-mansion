@@ -14,7 +14,7 @@ import { Environment } from "@react-three/drei"
 const screenPosition = new THREE.Vector3()
 const worldPosition = new THREE.Vector3()
 
-const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlayerDestination, setReachedDestination, rmb, takeShot, setTakeShot, setShotCharge, playerStats, setPlayerStats }) => {
+const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlayerDestination, setReachedDestination, rmb, takeShot, setTakeShot, setShotCharge, playerStats, setPlayerStats, setPhotoImg }) => {
   const { scene, camera, mouse } = useThree()
 
   const [grid, setGrid] = useState(null)
@@ -174,6 +174,11 @@ const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlay
   useEffect(()=>{
     if (gridClick[0] == -1) return
 
+    // Check if grid position is walkable
+    const node = grid.nodes[gridClick[1]][gridClick[0]]
+    if (node.walkable == false) return
+    //console.log(node)
+
     setPlayerDestination(gridClick)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gridClick])
@@ -184,6 +189,8 @@ const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlay
 
     let shotPower = Math.floor(takeShot)
     if (shotPower > 3) shotPower = 3
+
+    let hitEnemy = false
 
     enemies.forEach( en => {
       const enemy = findNodeByName(scene, en.type+en.id)
@@ -201,9 +208,21 @@ const Arena = ({ levels, setLevels, level, levelDoor, playerDestination, setPlay
       if (mousePos.y > screenPos.y + radius) return
 
       // hit enemy
+      hitEnemy = true
+
       enemy.health -= shotPower * 20
       enemy.actionFlag = "hurt"
     })
+
+    if (hitEnemy) {
+      setPhotoImg(prev => {
+        if (prev == "nq1") return "nq2"
+        if (prev == "nq2") return "nq3"
+        return "nq1"
+      })
+    } else setPhotoImg("nothing")
+
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[takeShot])
 

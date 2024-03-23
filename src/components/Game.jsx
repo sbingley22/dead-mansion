@@ -7,11 +7,12 @@ import FloatingPanel from "./FloatingPanel"
 import Status from "./Status"
 import InventoryUi from "./InventoryUi"
 import DialogUi from "./DialogUi"
+import PhotoUi from "./PhotoUi"
 
 const Game = () => {
   const [levels, setLevels] = useState(levelsJson)
   const [level, setLevel] = useState(null)
-  const [levelDoor, setLevelDoor] = useState("study")
+  const [levelDoor, setLevelDoor] = useState("study1")
   //console.log(levels)
   const backgroundRef = useRef(null)
   const [currentCursor, setCurrentCursor] = useState('crosshair');
@@ -27,6 +28,7 @@ const Game = () => {
   const [rmb, setRmb] = useState(false)
   const [takeShot, setTakeShot] = useState(-1)
   const [shotCharge, setShotCharge] = useState(0)
+  const [photoImg, setPhotoImg] = useState("nothing")
 
   const loadLevel = (lvl) => {
     if (level) setLevelDoor(level)
@@ -121,7 +123,8 @@ const Game = () => {
           type: "door",
           destination: door.destination,
           coord: dest,
-          key: door.key
+          key: door.key,
+          index: inDoor
         }
       }
 
@@ -162,6 +165,7 @@ const Game = () => {
 
   // Reached destination
   useEffect(() => {
+    //console.log(destinationAction)
     if (destinationAction == null) {
       setReachedDestination(null)
       return
@@ -181,6 +185,13 @@ const Game = () => {
           travel = true
           const updatedInventory = inventory.filter(item => item.name !== destination)
           setInventory(updatedInventory)
+
+          // Update levels
+          const tempLevels = {...levels}
+          const door = tempLevels[level].doors[destinationAction.index]
+          door.key = null
+          setLevels(tempLevels)
+          
         } else {
           setDialog(["Locked"])
         }
@@ -199,7 +210,7 @@ const Game = () => {
       setLevels(tempLevels)
 
       // Update inventory
-      console.log(item)
+      //console.log(item)
       const tempInventory = [...inventory]
       if (item.type == "key") {
         tempInventory.push({
@@ -247,6 +258,8 @@ const Game = () => {
   if (shotCharge == 1) photoBorder = "4px solid #555"
   else if (shotCharge == 2) photoBorder = "4px solid #999"
   else if (shotCharge >= 3) photoBorder = "4px solid #EEE"
+
+  //console.log(levels[level])
   
   return (
     <>
@@ -257,7 +270,7 @@ const Game = () => {
       />
 
       { levels[level].items && levels[level].items.map( (item, index) => (
-        !item.collected && <img key={index} src={"/items/" + item.image} className="item" style={{top: item.sy - 28 + "px", left: item.sx -28 + "px"}} />
+        !item.collected && <img key={index} src={"./items/" + item.image} className="item" style={{top: item.sy - 28 + "px", left: item.sx -28 + "px"}} />
       ))
       }
 
@@ -277,6 +290,7 @@ const Game = () => {
             setShotCharge={setShotCharge}
             playerStats={playerStats}
             setPlayerStats={setPlayerStats}
+            setPhotoImg={setPhotoImg}
           />
         </Suspense>
       </Canvas>
@@ -289,12 +303,13 @@ const Game = () => {
       </FloatingPanel>
       <FloatingPanel
         name="Photographs"
-        x={300}
+        backgroundColor={"rgba(0,0,0,0)"}
+        y={400}
         border={photoBorder}
       >
-        photo
+        <PhotoUi photoImg={photoImg} />
       </FloatingPanel>
-      <FloatingPanel name="Inventory" x={600} >
+      <FloatingPanel name="Inventory" x={940} >
         <InventoryUi inventory={inventory} setInventory={setInventory} playerStats={playerStats} setPlayerStats={setPlayerStats} />
       </FloatingPanel>
 

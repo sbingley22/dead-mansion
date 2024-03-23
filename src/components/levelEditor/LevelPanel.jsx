@@ -74,7 +74,7 @@ const LevelPanel = ({ doors, setDoors, items, setItems, enemies, setEnemies }) =
     setSelectedItemIndex(-1)
   }
   const handleItemAdd = () => {
-    const newItem = { name: "new", type: "key", x: 0, z: 0, sx: 0, sy: 0, radius: 25, collected: false, img: "", scale: 1 }
+    const newItem = { name: "new", type: "key", x: 0, z: 0, sx: 0, sy: 0, radius: 25, collected: false, image: "", scale: 1 }
     setItems([...items, newItem])
   }
 

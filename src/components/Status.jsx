@@ -9,7 +9,7 @@ const Status = ({ playerStats }) => {
     status = "scaredIdle"
   }
 
-  const statusImage = `/status/${status}.gif`
+  const statusImage = `./status/${status}.gif`
 
   const style = {
     width: '100%',

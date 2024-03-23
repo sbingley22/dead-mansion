@@ -68,6 +68,8 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
       return
     }
 
+    //console.log(path)
+
     if (currentAnimation.current !== "walk1") nextAnimation.current = "walk1"
 
     const worldNode = gridToWorld({x: path[0][0], z: path[0][1]}, grid.width, grid.height, gridScale)
@@ -79,6 +81,7 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
       if (path.length < 2) setReachedDestination(path[0])
       const newPath = [...path.slice(1)]
       setPath(newPath)
+      //console.log("slicing path")
       return
     }
 
@@ -111,10 +114,11 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
 
   const updateActions = (delta) => {
     if (rmb) {
+      //console.log("right mouse held")
       if (path > 0) setPath([])
       
       if (action.current === "aim") {
-        actionTimer.current += delta
+        actionTimer.current += delta * 1.4
         const timerFloor = Math.floor(actionTimer.current)
         setShotCharge(prev => {
           if (timerFloor === prev) return prev
@@ -165,7 +169,7 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
     let node = "CameraShape"
     if (currentAnimation.current === "aim1" || currentAnimation.current === "hurt1") {
       if (nodes[node]) nodes[node].visible = true
-    } else if (nodes[node]) nodes[node].visible = false
+    } else if (nodes[node]) nodes[node].visible = true
   }
 
   // Player wants to move
@@ -176,7 +180,7 @@ const Player = ({ playerPos, playerDestination, setReachedDestination, grid, gri
     const gridPos = worldToGrid(worldPos, grid.width, grid.height, gridScale)
     //console.log(worldPos, gridPos)
     const newPath = findPath([gridPos.x, gridPos.z], playerDestination, grid)
-    //console.log(newPath)
+    console.log("Player Destination Use Effect:", newPath)
     setPath(newPath)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerDestination])
