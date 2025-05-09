@@ -10,6 +10,8 @@ Click items in your inventory to use them.
 Watch for cursor changes to indicate new areas to move to.
 This demo only contains 7 areas to explore.
 
+![screenshot](./screenshot.png)
+
 ------------------------------------
 
 installation:
